@@ -98,7 +98,7 @@
             </li>
             <li class="nav-item cta cta-colored">
               <a href="cart.html" class="nav-link"
-                ><span class="icon-shopping_cart"></span>[0]</a
+                ><span class="icon-shopping_cart"></span></a
               >
             </li>
           </ul>
@@ -128,37 +128,38 @@
 	          	<div class="row align-items-end">
 	          		<div class="col-md-6">
 	                <div class="form-group">
-	                	<label for="firstname">Firt Name</label>
+	                	<label for="firstname">Firt Name*</label>
 	                  <input type="text" class="form-control" placeholder="">
 	                </div>
 	              </div>
 	              <div class="col-md-6">
 	                <div class="form-group">
-	                	<label for="lastname">Last Name</label>
+	                	<label for="lastname">Last Name*</label>
 	                  <input type="text" class="form-control" placeholder="">
 	                </div>
                 </div>
                 <div class="w-100"></div>
 		            <div class="col-md-12">
 		            	<div class="form-group">
-		            		<label for="country">State / Country</label>
+		            		<label for="country">State / Country*</label>
 		            		<div class="select-wrap">
 		                  <div class="icon"><span class="ion-ios-arrow-down"></span></div>
-		                  <select name="" id="" class="form-control">
-		                  	<option value="">France</option>
-		                    <option value="">Italy</option>
-		                    <option value="">Philippines</option>
-		                    <option value="">South Korea</option>
-		                    <option value="">Hongkong</option>
-		                    <option value="">Japan</option>
-		                  </select>
+		                  <select name="country" id="country" class="form-control">
+                          <option value="">Select a country</option>
+                          <option value="France">France</option>
+                          <option value="Italy">Italy</option>
+                          <option value="Philippines">Philippines</option>
+                          <option value="South Korea">South Korea</option>
+                          <option value="Hongkong">Hongkong</option>
+                          <option value="Japan">Japan</option>
+                      </select>
 		                </div>
 		            	</div>
 		            </div>
 		            <div class="w-100"></div>
 		            <div class="col-md-6">
 		            	<div class="form-group">
-	                	<label for="streetaddress">Street Address</label>
+	                	<label for="streetaddress">Street Address*</label>
 	                  <input type="text" class="form-control" placeholder="House number and street name">
 	                </div>
 		            </div>
@@ -170,13 +171,13 @@
 		            <div class="w-100"></div>
 		            <div class="col-md-6">
 		            	<div class="form-group">
-	                	<label for="towncity">Town / City</label>
+	                	<label for="towncity">Town / City*</label>
 	                  <input type="text" class="form-control" placeholder="">
 	                </div>
 		            </div>
 		            <div class="col-md-6">
 		            	<div class="form-group">
-		            		<label for="postcodezip">Postcode / ZIP *</label>
+		            		<label for="postcodezip">Postcode / ZIP*</label>
 	                  <input type="text" class="form-control" placeholder="">
 	                </div>
 		            </div>
@@ -189,7 +190,7 @@
 	              </div>
 	              <div class="col-md-6">
 	                <div class="form-group">
-	                	<label for="emailaddress">Email Address</label>
+	                	<label for="emailaddress">Email Address*</label>
 	                  <input type="text" class="form-control" placeholder="">
 	                </div>
                 </div>
@@ -231,7 +232,7 @@
 	          	</div>
 	          	<div class="col-md-12">
 	          		<div class="cart-detail p-3 p-md-4">
-	          			<h3 class="billing-heading mb-4">Payment Method</h3>
+	          			<h3 class="billing-heading mb-4">Payment Method*</h3>
 									<div class="form-group">
 										<div class="col-md-12">
 											<div class="radio">
@@ -256,7 +257,7 @@
 									<div class="form-group">
 										<div class="col-md-12">
 											<div class="checkbox">
-											   <label><input type="checkbox" value="" class="mr-2"> I have read and accept the terms and conditions</label>
+											   <label><input type="checkbox" value="" class="mr-2"> I have read and accept the terms and conditions.</label>
 											</div>
 										</div>
 									</div>
@@ -426,41 +427,103 @@
   <script src="js/main.js"></script>
 
   <script>
-		$(document).ready(function(){
+    $(document).ready(function() {
+      const deliveryFee = 10; // Fixed delivery fee
 
-		var quantitiy=0;
-		   $('.quantity-right-plus').click(function(e){
-		        
-		        // Stop acting like a button
-		        e.preventDefault();
-		        // Get the field name
-		        var quantity = parseInt($('#quantity').val());
-		        
-		        // If is not undefined
-		            
-		            $('#quantity').val(quantity + 1);
+      // Load cart
+      let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
-		          
-		            // Increment
-		        
-		    });
+      // Render cart items in checkout summary
+      function renderCheckout() {
+          let $cartDetail = $('.cart-detail.cart-total');
+          $cartDetail.empty();
 
-		     $('.quantity-left-minus').click(function(e){
-		        // Stop acting like a button
-		        e.preventDefault();
-		        // Get the field name
-		        var quantity = parseInt($('#quantity').val());
-		        
-		        // If is not undefined
-		      
-		            // Increment
-		            if(quantity>0){
-		            $('#quantity').val(quantity - 1);
-		            }
-		    });
-		    
-		});
-	</script>
+          if(cart.length === 0){
+              $cartDetail.html('<p>Your cart is empty.</p>');
+              return;
+          }
+
+          let subtotal = 0;
+          cart.forEach(item => subtotal += item.price * item.quantity);
+
+          const discount = 0; // You can calculate discounts if needed
+          const total = subtotal + deliveryFee - discount;
+
+          let html = `
+              <h3 class="billing-heading mb-4">Cart Total</h3>
+              <p class="d-flex"><span>Subtotal</span><span>$${subtotal.toFixed(2)}</span></p>
+              <p class="d-flex"><span>Delivery</span><span>$${deliveryFee.toFixed(2)}</span></p>
+              <p class="d-flex"><span>Discount</span><span>$${discount.toFixed(2)}</span></p>
+              <hr>
+              <p class="d-flex total-price"><span>Total</span><span>$${total.toFixed(2)}</span></p>
+          `;
+
+          $cartDetail.html(html);
+      }
+
+      renderCheckout();
+
+      // Place order button
+      $('.cart-detail .btn').click(function(e){
+          e.preventDefault();
+
+          if(cart.length === 0){
+              alert('Your cart is empty!');
+              return;
+          }
+
+          // -------------------------
+          // Validate billing fields
+          // -------------------------
+          let isValid = true;
+          let errorMsg = '';
+
+          const firstName = $('input[placeholder=""]').eq(0).val().trim();
+          const lastName = $('input[placeholder=""]').eq(1).val().trim();
+          const country = $('select#country').val().trim();
+          const street = $('input[placeholder="House number and street name"]').val().trim();
+          const city = $('input[placeholder=""]').eq(2).val().trim();
+          const postcode = $('input[placeholder=""]').eq(3).val().trim();
+          const phone = $('input[placeholder=""]').eq(4).val().trim();
+          const email = $('input[placeholder=""]').eq(5).val().trim();
+          const termsChecked = $('.checkbox input[type="checkbox"]').is(':checked');
+          const paymentMethod = $('.cart-detail input[name="optradio"]:checked').length;
+
+          if(!firstName) { isValid = false; errorMsg = 'Please enter your first name.'; }
+          else if(!lastName) { isValid = false; errorMsg = 'Please enter your last name.'; }
+          else if(!country) { isValid = false; errorMsg = 'Please select your country.'; }
+          else if(!street) { isValid = false; errorMsg = 'Please enter your street address.'; }
+          else if(!city) { isValid = false; errorMsg = 'Please enter your city.'; }
+          else if(!postcode) { isValid = false; errorMsg = 'Please enter your postcode.'; }
+          else if(!phone) { isValid = false; errorMsg = 'Please enter your phone number.'; }
+          else if(!email || !/^\S+@\S+\.\S+$/.test(email)) { isValid = false; errorMsg = 'Please enter a valid email address.'; }
+          else if(!paymentMethod) { isValid = false; errorMsg = 'Please select a payment method.'; }
+          else if(!termsChecked) { isValid = false; errorMsg = 'You must accept the terms and conditions.'; }
+
+          if(!isValid){
+              alert(errorMsg);
+              return;
+          }
+
+          // -------------------------
+          // Checkout successful
+          // -------------------------
+          localStorage.removeItem('cart');
+          cart = [];
+          renderCheckout();
+
+          // Update header cart count
+          $('.nav-item.cta a').html('<span class="icon-shopping_cart"></span>[0]');
+
+          alert('Thank you! Your order has been placed.');
+
+          // Redirect to homepage after 3 seconds
+          setTimeout(function(){
+                window.location.href = 'index.html';
+          }, 2000);
+      });
+    });
+    </script>
     
   </body>
 </html>

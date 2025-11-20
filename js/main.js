@@ -344,3 +344,499 @@ setInterval(function() { makeTimer(); }, 1000);
 
 })(jQuery);
 
+
+fetch('data/products.json')
+.then(res => res.json())
+.then(data => {
+
+/* ---------------------------------------------
+	SHOP PAGE — LOAD ALL PRODUCTS WITH CATEGORY FILTER
+	--------------------------------------------- */
+const shopContainer = document.getElementById('products-container');
+const categoryLinks = document.querySelectorAll('.product-category a');
+
+if (shopContainer && typeof data !== "undefined") {
+
+	// Function to render products
+	function renderProducts(products) {
+		shopContainer.innerHTML = ""; // clear current products
+
+		if (products.length === 0) {
+			// Show fallback text when no products found
+			shopContainer.innerHTML = `
+				<div class="col-12 text-center">
+					<p style="font-size: 18px; color: #555;">No products found in this category.</p>
+				</div>
+			`;
+			return; // exit function
+		}
+
+		products.forEach(p => {
+			const discountHTML = p.discount_percent
+				? `<span class="status">${p.discount_percent}%</span>`
+				: "";
+
+			const priceHTML = p.price_sale
+				? `<p class="price">
+						<span class="mr-2 price-dc">$${p.price_original.toFixed(2)}</span>
+						<span class="price-sale">$${p.price_sale.toFixed(2)}</span>
+				</p>`
+				: `<p class="price">
+						<span>$${p.price_original.toFixed(2)}</span>
+				</p>`;
+
+			shopContainer.innerHTML += `
+				<div class="col-md-6 col-lg-3 ftco-animate">
+					<div class="product">
+						<a href="product-single.html?id=${p.id}" class="img-prod">
+							<img class="img-fluid" src="${p.image}" alt="${p.name}">
+							${discountHTML}
+							<div class="overlay"></div>
+						</a>
+						<div class="text py-3 pb-4 px-3 text-center">
+							<h3><a href="product-single.html?id=${p.id}">${p.name}</a></h3>
+							<div class="d-flex">
+								<div class="pricing">${priceHTML}</div>
+							</div>
+							<div class="bottom-area d-flex px-3">
+								<div class="m-auto d-flex">
+									<a href="#" class="add-to-cart d-flex justify-content-center align-items-center text-center">
+										<span><i class="ion-ios-menu"></i></span>
+									</a>
+									<a href="#" class="buy-now d-flex justify-content-center align-items-center mx-1">
+										<span><i class="ion-ios-cart"></i></span>
+									</a>
+									<a href="#" class="heart d-flex justify-content-center align-items-center ">
+										<span><i class="ion-ios-heart"></i></span>
+									</a>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>`;
+		});
+
+		// Refresh AOS and trigger animations for new elements
+		if (typeof AOS !== "undefined") AOS.refreshHard();
+
+		$(".ftco-animate").waypoint(function (direction) {
+			if (direction === "down" && !$(this.element).hasClass("ftco-animated")) {
+				$(this.element).addClass("item-animate");
+				setTimeout(function () {
+					$("body .ftco-animate.item-animate").each(function (k) {
+						var el = $(this);
+						setTimeout(function () {
+							el.addClass("fadeInUp ftco-animated");
+							el.removeClass("item-animate");
+						}, k * 50);
+					});
+				}, 100);
+			}
+		}, { offset: "95%" });
+	}
+
+	// Initially render all products
+	renderProducts(data.products);
+
+	// Category filter click
+	categoryLinks.forEach(link => {
+		link.addEventListener('click', e => {
+			e.preventDefault();
+
+			// Remove active class from all links and set current active
+			categoryLinks.forEach(l => l.classList.remove('active'));
+			link.classList.add('active');
+
+			const category = link.textContent.trim().toLowerCase();
+
+			if (category === "all") {
+				renderProducts(data.products);
+			} else {
+				const filtered = data.products.filter(p => p.category.toLowerCase() === category);
+				renderProducts(filtered);
+			}
+		});
+	});
+}
+
+/* ---------------------------------------------
+	INDEX PAGE — LOAD LATEST 6 PRODUCTS ONLY
+	--------------------------------------------- */
+const featuredContainer = document.getElementById('featured-products');
+
+if (featuredContainer) {
+
+	// latest 6 products (reverse to show newest first)
+	const latestSix = data.products.slice(0, 8);
+
+	latestSix.forEach(p => {
+	let discountHTML = p.discount_percent
+		? `<span class="status">${p.discount_percent}%</span>`
+		: "";
+
+	let priceHTML = p.price_sale
+		? `<p class="price">
+			<span class="mr-2 price-dc">$${p.price_original.toFixed(2)}</span>
+			<span class="price-sale">$${p.price_sale.toFixed(2)}</span>
+			</p>`
+		: `<p class="price">
+			<span>$${p.price_original.toFixed(2)}</span>
+			</p>`;
+
+	featuredContainer.innerHTML += `
+		<div class="col-md-6 col-lg-3 ftco-animate">
+		<div class="product">
+			<a href="product-single.html?id=${p.id}" class="img-prod">
+			<img class="img-fluid" src="${p.image}" alt="${p.name}">
+			${discountHTML}
+			<div class="overlay"></div>
+			</a>
+			<div class="text py-3 pb-4 px-3 text-center">
+			<h3><a href="product-single.html?id=${p.id}">${p.name}</a></h3>
+			<div class="d-flex">
+				<div class="pricing">
+				${priceHTML}
+				</div>
+			</div>
+			<div class="bottom-area d-flex px-3">
+				<div class="m-auto d-flex">
+				<a href="#" class="add-to-cart d-flex justify-content-center align-items-center text-center">
+					<span><i class="ion-ios-menu"></i></span>
+				</a>
+				<a href="#" class="buy-now d-flex justify-content-center align-items-center mx-1">
+					<span><i class="ion-ios-cart"></i></span>
+				</a>
+				<a href="#" class="heart d-flex justify-content-center align-items-center ">
+					<span><i class="ion-ios-heart"></i></span>
+				</a>
+				</div>
+			</div>
+			</div>
+		</div>
+		</div>`;
+	});
+}
+
+// Get product ID from URL
+const params = new URLSearchParams(window.location.search);
+const productId = params.get('id');
+
+if (productId) {
+  fetch('data/products.json')
+    .then(res => res.json())
+    .then(data => {
+      const product = data.products.find(p => p.id == productId);
+      if (!product) return;
+
+      // -----------------------------
+      // UPDATE IMAGE
+      // -----------------------------
+      const imgEl = document.getElementById('product-image');
+      if (imgEl) imgEl.src = product.image;
+
+      const imgLink = document.querySelector('.image-popup');
+      if (imgLink) imgLink.href = product.image;
+
+      // -----------------------------
+      // UPDATE NAME
+      // -----------------------------
+      const nameEl = document.getElementById('product-name');
+      if (nameEl) nameEl.textContent = product.name;
+
+      // -----------------------------
+      // UPDATE PRICE
+      // -----------------------------
+      const priceEl = document.getElementById('product-price');
+      if (priceEl) {
+        if (product.price_sale) {
+          priceEl.innerHTML = `<span class="mr-2 price-dc">$${product.price_original.toFixed(2)}</span>
+                               <span class="price-sale">$${product.price_sale.toFixed(2)}</span>`;
+        } else {
+          priceEl.innerHTML = `<span>$${product.price_original.toFixed(2)}</span>`;
+        }
+      }
+
+      // -----------------------------
+      // UPDATE STOCK
+      // -----------------------------
+      const stockEl = document.getElementById('product-stock');
+      if (stockEl) stockEl.textContent = `${product.stock || 100} kg available`;
+
+      // -----------------------------
+      // ADD DISCOUNT BADGE
+      // -----------------------------
+      if (product.discount_percent) {
+        const imgProd = document.querySelector('.img-prod');
+        if (imgProd && !imgProd.querySelector('.status')) {
+          const discountEl = document.createElement('span');
+          discountEl.className = 'status';
+          discountEl.textContent = product.discount_percent + '%';
+          imgProd.appendChild(discountEl);
+        }
+      }
+
+      // -----------------------------
+      // UPDATE DESCRIPTION
+      // -----------------------------
+      const descEl = document.getElementById('product-description');
+      if (descEl) descEl.textContent = product.description || "No description available.";
+
+      // -----------------------------
+      // UPDATE RATING AND COUNTS
+      // -----------------------------
+      const ratingValue = product.rating || 5;
+      const ratingCount = product.rating_count || 100;
+      const soldCount = product.sold || 500;
+
+      const ratingEl = document.getElementById('product-rating');
+      if (ratingEl) ratingEl.textContent = ratingValue.toFixed(1);
+
+      const starsEl = document.querySelectorAll('.rating p:first-child a span');
+      starsEl.forEach((star, index) => {
+        if (index < Math.round(ratingValue)) {
+          star.className = 'ion-ios-star';
+          star.style.color = '#82ae46';
+        } else {
+          star.className = 'ion-ios-star-outline';
+          star.style.color = '#82ae46';
+        }
+      });
+
+      const ratingCountEl = document.getElementById('rating-count');
+      if (ratingCountEl) ratingCountEl.textContent = ratingCount;
+
+      const soldEl = document.getElementById('sold-count');
+      if (soldEl) soldEl.textContent = soldCount;
+
+      // -----------------------------
+      // UPDATE BREADCRUMBS
+      // -----------------------------
+      const bcEl = document.querySelector('.breadcrumbs');
+      if (bcEl) {
+        bcEl.innerHTML = `
+          <span class="mr-2"><a href="index.html">Home</a></span> &gt; 
+          <span class="mr-2"><a href="shop.html">Products</a></span> &gt; 
+          <span>${product.name}</span>
+        `;
+      }
+
+      // -----------------------------
+      // UPDATE H1
+      // -----------------------------
+      const h1El = document.querySelector('.hero-wrap .bread');
+      if (h1El) h1El.textContent = product.name;
+    });
+}
+
+
+if (productId) {
+	const relatedContainer = document.querySelector('#related-products .row');
+	if (relatedContainer) {
+		relatedContainer.innerHTML = '';
+
+		const relatedProducts = data.products.filter(p => p.id != productId).slice(0, 4);
+
+		relatedProducts.forEach(p => {
+			let discountHTML = p.discount_percent ? `<span class="status">${p.discount_percent}%</span>` : "";
+			let priceHTML = p.price_sale
+				? `<p class="price"><span class="mr-2 price-dc">$${p.price_original.toFixed(2)}</span><span class="price-sale">$${p.price_sale.toFixed(2)}</span></p>`
+				: `<p class="price"><span>$${p.price_original.toFixed(2)}</span></p>`;
+
+			const col = document.createElement('div');
+			col.className = 'col-md-6 col-lg-3 ftco-animate';
+			col.innerHTML = `
+				<div class="product">
+					<a href="product-single.html?id=${p.id}" class="img-prod">
+						<img class="img-fluid" src="${p.image}" alt="${p.name}">
+						${discountHTML}
+						<div class="overlay"></div>
+					</a>
+					<div class="text py-3 pb-4 px-3 text-center">
+						<h3><a href="product-single.html?id=${p.id}">${p.name}</a></h3>
+						<div class="d-flex">
+							<div class="pricing">${priceHTML}</div>
+						</div>
+						<div class="bottom-area d-flex px-3">
+							<div class="m-auto d-flex">
+								<a href="#" class="add-to-cart d-flex justify-content-center align-items-center text-center">
+									<span><i class="ion-ios-menu"></i></span>
+								</a>
+								<a href="#" class="buy-now d-flex justify-content-center align-items-center mx-1">
+									<span><i class="ion-ios-cart"></i></span>
+								</a>
+								<a href="#" class="heart d-flex justify-content-center align-items-center">
+									<span><i class="ion-ios-heart"></i></span>
+								</a>
+							</div>
+						</div>
+					</div>
+				</div>`;
+			relatedContainer.appendChild(col);
+		});
+	}
+}
+
+/* ---------------------------------------------
+	FIX ANIMATIONS FOR DYNAMIC CONTENT
+	--------------------------------------------- */
+setTimeout(() => {
+	if (typeof AOS !== "undefined") {
+	AOS.refreshHard();
+	}
+
+	$(".ftco-animate").waypoint(function (direction) {
+	if (direction === "down" && !$(this.element).hasClass("ftco-animated")) {
+		$(this.element).addClass("item-animate");
+		setTimeout(function () {
+		$("body .ftco-animate.item-animate").each(function (k) {
+			var el = $(this);
+			setTimeout(function () {
+			el.addClass("fadeInUp ftco-animated");
+			el.removeClass("item-animate");
+			}, k * 50);
+		});
+		}, 100);
+	}
+	}, { offset: "95%" });
+
+}, 300);
+});
+
+
+$(document).ready(function() {
+    // Capture Add to Cart click
+    $('.btn-black').click(function(e){
+		e.preventDefault();
+
+		// Get product id from URL
+		const productId = new URLSearchParams(window.location.search).get('id');
+
+		// Load products JSON
+		$.getJSON('data/products.json', function(data) {
+			const productData = data.products.find(p => p.id == productId);
+			if(!productData) return alert('Product not found');
+
+			// Determine price (sale or original)
+			const price = productData.price_sale ? productData.price_sale : productData.price_original;
+
+			// Create product object
+			const product = {
+				id: productData.id,
+				name: productData.name,
+				price: parseFloat(price),
+				image: productData.image,
+				size: $('#product-size').val(),
+				quantity: parseInt($('#quantity').val()) || 1
+			};
+
+			// Load cart
+			let cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+			// Add/update product
+			const existing = cart.find(p => p.id === product.id && p.size === product.size);
+			if(existing){
+				existing.quantity += product.quantity;
+			} else {
+				cart.push(product);
+			}
+
+			// Save cart
+			localStorage.setItem('cart', JSON.stringify(cart));
+
+			// Update cart count dynamically
+			updateCartCount();
+
+			// Optional: show a small alert instead of redirecting
+			alert(product.name + ' added to cart!');
+		});
+	});
+
+	function updateCartCount() {
+		const cart = JSON.parse(localStorage.getItem('cart')) || [];
+		const totalItems = cart.reduce((acc, p) => acc + p.quantity, 0);
+
+		// Replace everything inside <a> with updated count
+		$('.nav-item.cta a').html('<span class="icon-shopping_cart"></span>[' + totalItems + ']');
+	}
+
+	updateCartCount();
+
+    // Delivery fee
+    const deliveryFee = 10;
+
+    // Load cart from localStorage
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+    // Render cart items
+    function renderCart() {
+        const $tbody = $('.cart-list table tbody');
+        $tbody.empty();
+
+        if(cart.length === 0){
+            $tbody.html('<tr><td colspan="6" class="text-center">Your cart is empty.</td></tr>');
+            updateTotals();
+            return;
+        }
+
+        cart.forEach((p, index) => {
+            const total = (p.price * p.quantity).toFixed(2);
+            $tbody.append(`
+                <tr class="text-center" data-index="${index}">
+                    <td class="product-remove"><a href="#" class="remove-item"><span class="ion-ios-close"></span></a></td>
+                    <td class="image-prod"><div class="img" style="background-image:url(${p.image});"></div></td>
+                    <td class="product-name">
+                        <h3>${p.name}</h3>
+                        <p>Size: ${p.size || '-'}</p>
+                    </td>
+                    <td class="price">$${p.price.toFixed(2)}</td>
+                    <td class="quantity">
+                        <input type="number" min="1" max="20" value="${p.quantity}" class="form-control pr-1 input-number">
+                    </td>
+                    <td class="total">$${total}</td>
+                </tr>
+            `);
+        });
+
+        updateTotals();
+    }
+
+    // Update cart totals
+    function updateTotals() {
+        let subtotal = 0;
+        cart.forEach(p => subtotal += p.price * p.quantity);
+        const discount = 0; // example discount
+        const total = subtotal + deliveryFee - discount;
+
+        $('.cart-total p:contains("Subtotal") span').last().text('$' + subtotal.toFixed(2));
+        $('.cart-total p:contains("Delivery") span').last().text('$' + deliveryFee.toFixed(2));
+        $('.cart-total p:contains("Discount") span').last().text('$' + discount.toFixed(2));
+        $('.cart-total .total-price span').last().text('$' + total.toFixed(2));
+    }
+
+    // Remove item
+    $('.cart-list table tbody').on('click', '.remove-item', function(e){
+        e.preventDefault();
+        const index = $(this).closest('tr').data('index');
+        cart.splice(index, 1);
+        localStorage.setItem('cart', JSON.stringify(cart));
+        renderCart();
+    });
+
+    // Update quantity
+    $('.cart-list table tbody').on('input change', '.input-number', function(){
+        const index = $(this).closest('tr').data('index');
+        let qty = parseInt($(this).val()) || 1;
+        if(qty < 1) qty = 1;
+        if(qty > 20) qty = 20;
+        $(this).val(qty);
+        cart[index].quantity = qty;
+        localStorage.setItem('cart', JSON.stringify(cart));
+
+        // Update product total
+        $(this).closest('tr').find('.total').text('$' + (cart[index].price * qty).toFixed(2));
+        updateTotals();
+    });
+
+    // Initialize cart rendering
+    renderCart();
+});

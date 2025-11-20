@@ -8735,9 +8735,9 @@ h1, h2, h3, h4, h5,
       margin-bottom: 0;
       color: #82ae46;
       font-weight: 400; }
-      .product .text p.price span.price-dc {
+      .product .text p.price span.price-dc, .price-dc {
         text-decoration: line-through;
-        color: #b3b3b3; }
+        color: #b3b3b3 !important; }
       .product .text p.price span.price-sale {
         color: #82ae46; }
     .product .text .pricing {
@@ -8905,9 +8905,6 @@ h1, h2, h3, h4, h5,
 .ftco-cart .info label {
   font-size: 13px;
   color: #000000; }
-
-.cart-list {
-  overflow-x: scroll; }
 
 .table {
   min-width: 1000px !important;
